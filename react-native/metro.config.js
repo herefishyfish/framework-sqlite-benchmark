@@ -6,6 +6,8 @@ const { getDefaultConfig, mergeConfig } = require('@react-native/metro-config');
  *
  * @type {import('@react-native/metro-config').MetroConfig}
  */
-const config = {};
+// Release builds run from a short `subst` drive; Metro resolves some files
+// through the real path, so watch that too.
+const config = { watchFolders: [require('fs').realpathSync.native(__dirname)] };
 
 module.exports = mergeConfig(getDefaultConfig(__dirname), config);
