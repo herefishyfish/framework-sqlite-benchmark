@@ -1,43 +1,49 @@
 # Pixel 7 release comparison
 
-One complete run of each signed Android release APK on a connected Pixel 7 on 2026-09-16. The device reported Android 17 (API 37) and `arm64-v8a`. Apps ran one at a time, with no build running during a benchmark. Each value is the median elapsed milliseconds for the **whole case** from five samples after one warmup. Lower is faster.
+Signed Android release APKs were run on the same connected Pixel 7 (`arm64-v8a`, Android 17/API 37). NativeScript and React Native were measured on 2026-09-30 after upgrading to NativeScript 9.1 with `@edusperoni/nativescript-sqlite` 0.0.7 and `react-native-nitro-sqlite` 10.0.0. NativePHP per-query was measured on 2026-09-16 and NativePHP SuperNative on 2026-09-17. Apps ran one at a time, with no build running during each benchmark. Each value is the median elapsed milliseconds for the **whole case** from five samples after one warmup. Lower is faster.
 
-NativePHP appears twice: **per-query** is the WebView mode that sends every SQL call from JavaScript to Laravel over HTTP, and **SuperNative** is the native-UI mode (added 2026-09-17, same device and build type) where every SQL call is one native runloop round-trip inside the persistent PHP runtime. Its PHP loop mode, which has no per-call boundary, is excluded. All 17 cases passed in every app and mode, and each report ended with `integrity_check=ok`.
+NativeScript and React Native were each run seven times in a row; their columns show the median of the seven run medians for each case, so one noisy run cannot move a value. NativePHP columns use one complete run per mode. All 17 cases passed and `integrity_check=ok` in every run. The phone reported a battery temperature of 30.8–31.1 °C and thermal status 0 (no throttling) before each NativeScript and React Native run.
 
 Delta is the percentage difference from NativeScript, calculated from the unrounded medians: `(other / NativeScript - 1) × 100`. Positive means slower; negative means faster. Times are milliseconds.
 
-| Case | NativeScript | React Native | RN Δ | NativePHP per-query | PHP Δ | NativePHP SuperNative | SN Δ |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| Schema create/drop (30 cycles) | 17.805 | 37.792 | +112.3% | 3,857.400 | +21,565% | 126.035 | +607.9% |
-| Autocommit insert (400) | 42.165 | 147.898 | +250.8% | 30,637.300 | +72,561% | 869.593 | +1,962% |
-| Transaction insert (400) | 9.387 | 160.029 | +1,604.8% | 26,278.200 | +279,842% | 1,502.930 | +15,911% |
-| Point select (400) | 20.695 | 98.108 | +374.1% | 25,822.300 | +124,676% | 1,539.299 | +7,338% |
-| Indexed filter (100) | 7.342 | 44.797 | +510.1% | 6,742.100 | +91,729% | 356.343 | +4,753% |
-| Range scan (100) | 7.058 | 50.232 | +611.7% | 6,649.900 | +94,118% | 367.475 | +5,106% |
-| Full scan aggregate (40) | 8.620 | 36.260 | +320.6% | 2,675.400 | +30,937% | 160.535 | +1,762% |
-| Order with limit (100) | 7.995 | 59.588 | +645.3% | 6,677.000 | +83,415% | 400.069 | +4,904% |
-| Join aggregate (100) | 9.007 | 28.223 | +213.3% | 6,598.900 | +73,164% | 408.874 | +4,440% |
-| LIKE search (50) | 14.425 | 62.169 | +331.0% | 3,389.200 | +23,395% | 203.173 | +1,308% |
-| JSON extract (100) | 335.680 | 294.888 | -12.2% | 7,622.200 | +2,171% | 458.598 | +36.6% |
-| Update by primary key (400) | 52.872 | 96.917 | +83.3% | 27,161.600 | +51,272% | 1,301.780 | +2,362% |
-| Delete by primary key (200) | 23.591 | 46.578 | +97.4% | 13,440.000 | +56,871% | 491.124 | +1,982% |
-| Upsert (400) | 52.688 | 100.056 | +89.9% | 28,866.900 | +54,688% | 1,029.045 | +1,853% |
-| Transaction rollback (50) | 4.257 | 22.884 | +437.6% | 9,826.000 | +230,720% | 658.243 | +15,363% |
-| 4 KiB BLOB insert and length read (100) | 19.174 | 40.336 | +110.4% | 14,017.200 | +73,005% | 778.651 | +3,961% |
-| Index build (2,000 rows) | 0.458 | 0.796 | +73.9% | 45.000 | +9,725% | 4.326 | +844.6% |
+| Case                                    | NativeScript | React Native |    RN Δ | NativePHP per-query |       PHP Δ | NativePHP SuperNative |     SN Δ |
+| --------------------------------------- | -----------: | -----------: | ------: | ------------------: | ----------: | --------------------: | -------: |
+| Schema create/drop (30 cycles)          |       16.078 |       30.756 |  +91.3% |           3,857.400 |    +23,892% |               126.035 |  +683.9% |
+| Autocommit insert (400)                 |       46.370 |       97.157 | +109.5% |          30,637.300 |    +65,971% |               869.593 |  +1,775% |
+| Transaction insert (400)                |        1.996 |      148.693 | +7,350% |          26,278.200 | +1,316,443% |             1,502.930 | +75,197% |
+| Point select (400)                      |        8.149 |      248.883 | +2,954% |          25,822.300 |   +316,777% |             1,539.299 | +18,789% |
+| Indexed filter (100)                    |        3.655 |       82.506 | +2,157% |           6,742.100 |   +184,362% |               356.343 |  +9,649% |
+| Range scan (100)                        |        4.198 |       87.099 | +1,975% |           6,649.900 |   +158,306% |               367.475 |  +8,654% |
+| Full scan aggregate (40)                |        6.544 |       51.308 | +684.0% |           2,675.400 |    +40,783% |               160.535 |  +2,353% |
+| Order with limit (100)                  |        5.195 |       91.349 | +1,658% |           6,677.000 |   +128,427% |               400.069 |  +7,601% |
+| Join aggregate (100)                    |        4.318 |       74.740 | +1,631% |           6,598.900 |   +152,723% |               408.874 |  +9,369% |
+| LIKE search (50)                        |       15.126 |      140.529 | +829.1% |           3,389.200 |    +22,306% |               203.173 |  +1,243% |
+| JSON extract (100)                      |      150.288 |      653.972 | +335.1% |           7,622.200 |     +4,972% |               458.598 |  +205.1% |
+| Update by primary key (400)             |       47.993 |      122.732 | +155.7% |          27,161.600 |    +56,495% |             1,301.780 |  +2,612% |
+| Delete by primary key (200)             |       23.396 |       46.776 |  +99.9% |          13,440.000 |    +57,346% |               491.124 |  +1,999% |
+| Upsert (400)                            |       49.409 |       94.989 |  +92.3% |          28,866.900 |    +58,324% |             1,029.045 |  +1,983% |
+| Transaction rollback (50)               |        1.762 |       26.723 | +1,417% |           9,826.000 |   +557,562% |               658.243 | +37,258% |
+| 4 KiB BLOB insert and length read (100) |       19.027 |       57.835 | +204.0% |          14,017.200 |    +73,570% |               778.651 |  +3,992% |
+| Index build (2,000 rows)                |        0.461 |        0.875 |  +89.9% |              45.000 |     +9,661% |                 4.326 |  +838.4% |
+
+The previous NativeScript and React Native builds, and how these runs compare with them, are in [RESULTS-PIXEL7-UPGRADE.md](RESULTS-PIXEL7-UPGRADE.md). A head-to-head comparison of the upgraded NativeScript and React Native builds, with ranges and per-operation costs, is in [RESULTS-PIXEL7-NS-VS-RN.md](RESULTS-PIXEL7-NS-VS-RN.md).
 
 ## Packages used
 
-| App          | Framework packages                                             | SQLite package or path                                                                                                                                                |
-| ------------ | -------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| NativeScript | `@nativescript/core` 8.9.9; `@nativescript/android` 8.9.2  | `@edusperoni/nativescript-sqlite` 0.0.3, pinned [PR 7 fork](https://github.com/edusperoni/nativescript-plugins/pull/7) at `4c2e152e31edbdf289be1eeef0bf67ace44cfcc5` |
-| React Native | `react-native` 0.87.1; `react-native-nitro-modules` 0.37.1 | `react-native-nitro-sqlite` 9.7.0                                                                                                                                   |
-| NativePHP    | `nativephp/mobile` 4.4.1; `nativephp/mobile-ui` 0.4.0; `laravel/framework` 13.32.0 | Bundled PHP `PDO_SQLITE` through Laravel's default SQLite connection                                                                                                |
+| App          | Framework packages                                                                       | SQLite package or path                                                                            |
+| ------------ | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| NativeScript | `@nativescript/core` 9.1.2; `@nativescript/android` 9.1.1                            | `@edusperoni/nativescript-sqlite` 0.0.7, Node-API backend, with the Android build fixes in `nativescript/patches/` |
+| React Native | `react-native` 0.87.1; `react-native-nitro-modules` 0.37.1                           | `react-native-nitro-sqlite` 10.0.0                                                               |
+| NativePHP    | `nativephp/mobile` 4.4.1; `nativephp/mobile-ui` 0.4.0; `laravel/framework` 13.32.0 | Bundled PHP `PDO_SQLITE` through Laravel's default SQLite connection                             |
 
-The raw reports contain all samples, p95, throughput, and metadata: [NativeScript](results/pixel7/nativescript-release.json), [React Native](results/pixel7/react-native-release.json), [NativePHP per-query](results/pixel7/nativephp-ui-release.json), and [NativePHP SuperNative](results/pixel7/nativephp-native-release.json). Regenerate the values and deltas with:
+The seven-run reports are [NativeScript](results/pixel7/nativescript-release-0.0.7-median7.json) and [React Native](results/pixel7/react-native-release-nitro10-median7.json); each lists every run median per case and the run files it was built from. The individual runs, with all samples, p95, throughput, and metadata, are `results/pixel7/nativescript-release-0.0.7.json`, `nativescript-release-0.0.7-2.json` to `-7.json`, `react-native-release-nitro10.json`, and `react-native-release-nitro10-2.json` to `-7.json`. NativePHP: [per-query](results/pixel7/nativephp-ui-release.json) and [SuperNative](results/pixel7/nativephp-native-release.json). Rebuild the seven-run reports and regenerate the main table with:
 
 ```powershell
-python scripts/compare.py results/pixel7/nativescript-release.json results/pixel7/react-native-release.json results/pixel7/nativephp-ui-release.json results/pixel7/nativephp-native-release.json
+$ns = @("results/pixel7/nativescript-release-0.0.7.json") + (2..7 | ForEach-Object { "results/pixel7/nativescript-release-0.0.7-$_.json" })
+$rn = @("results/pixel7/react-native-release-nitro10.json") + (2..7 | ForEach-Object { "results/pixel7/react-native-release-nitro10-$_.json" })
+node scripts/aggregate-runs.mjs results/pixel7/nativescript-release-0.0.7-median7.json @ns
+node scripts/aggregate-runs.mjs results/pixel7/react-native-release-nitro10-median7.json @rn
+python scripts/compare.py results/pixel7/nativescript-release-0.0.7-median7.json results/pixel7/react-native-release-nitro10-median7.json results/pixel7/nativephp-ui-release.json results/pixel7/nativephp-native-release.json
 ```
 
-All three reported WAL mode, `synchronous=2` (`FULL`), and 2,000 fixture rows. SQLite versions were 3.53.1 in NativeScript, 3.49.0 in React Native, and 3.44.2 in NativePHP. NativePHP per-query awaits an HTTP request to Laravel/PDO for **each** SQL call and processes query results before issuing the next one. NativePHP SuperNative has no JavaScript and no HTTP: each SQL call runs on its own native runloop tick (poll wake with the runtime's 1 ms floor, one PDO call, Blade re-render, frame publish), about 3.8 ms per call on this device (point select: 1,539 ms for 400 calls) versus about 0.05 ms for NativeScript and 0.25 ms for React Native. These numbers measure the complete app paths and include different call boundaries; they are not SQLite engine-only timings. This is one full run per app, so repeat runs before treating small differences as stable.
+All reports show WAL mode, `synchronous=2` (`FULL`), and 2,000 fixture rows. SQLite versions were 3.53.1 in NativeScript, 3.49.0 in React Native, and 3.44.2 in NativePHP. NativePHP per-query awaits an HTTP request to Laravel/PDO for **each** SQL call and processes query results before issuing the next one. NativePHP SuperNative has no JavaScript and no HTTP: each SQL call runs on its own native runloop tick (poll wake with the runtime's 1 ms floor, one PDO call, Blade re-render, frame publish), about 3.8 ms per call on this device (point select: 1,539 ms for 400 calls) versus about 0.02 ms for NativeScript and 0.62 ms for React Native. These numbers measure the complete app paths and include different call boundaries; they are not SQLite engine-only timings. Cases that take only a few milliseconds per sample vary by 40–80% between runs even for NativeScript, and React Native varies more (JSON extract 450–913 ms across its seven runs); the upgrade page lists each case’s range. Run dates differ between the JavaScript apps and NativePHP.
