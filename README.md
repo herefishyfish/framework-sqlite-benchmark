@@ -4,15 +4,19 @@ Three CLI-created apps run the same 17 SQLite cases on Android:
 
 | App | SQLite implementation |
 | --- | --- |
-| `react-native/` | React Native 0.87.1 with [`react-native-nitro-sqlite`](https://github.com/margelo/react-native-nitro-sqlite) 9.7.0 |
-| `nativescript/` | SolidJS with [`@edusperoni/nativescript-sqlite`](https://github.com/edusperoni/nativescript-plugins/pull/7), PR 7 commit `4c2e152e31edbdf289be1eeef0bf67ace44cfcc5` |
+| `react-native/` | React Native 0.87.1 with [`react-native-nitro-sqlite`](https://github.com/margelo/react-native-nitro-sqlite) 10.0.0 |
+| `nativescript/` | NativeScript 9.1 (SolidJS) with [`@edusperoni/nativescript-sqlite`](https://www.npmjs.com/package/@edusperoni/nativescript-sqlite) 0.0.7 on its default Node-API backend |
 | `nativephp/` | NativePHP Mobile 4.4.1 and its default Laravel SQLite PDO connection; SuperNative (native UI), direct PHP, and per-query WebView modes |
 
-The NativeScript fork source is checked out in `native-sqlite-fork/` and installed as a local npm dependency. A ZIP of the pinned plugin snapshot, including its native sources, compiled JavaScript entry files, license, and provenance, is at [nativescript/nativescript-sqlite-pr7-4c2e152.zip](nativescript/nativescript-sqlite-pr7-4c2e152.zip). Its Android runtime is pinned to NativeScript 8.9.2 because the fork's V8 bindings do not link with the 9.1 runtime. The published Solid template requires `--legacy-peer-deps` for npm installation.
+The NativeScript plugin is installed from npm and patched on `npm install` by `patch-package` ([nativescript/patches/](nativescript/patches/)) with two Android build fixes: CMake path arguments use forward slashes, so Windows paths such as `C:\Users` are not read as escape sequences; and the link-time `libNativeScript.so` stub is linked by name instead of as an `IMPORTED` target, so the Android Gradle plugin does not package it over the runtime's own library (that replaced the debug runtime and crashed on startup). The published Solid template requires `--legacy-peer-deps` for npm installation.
+
+The earlier PR 7 fork measurements used a local Android read statement cache change, recorded in [scripts/native-sqlite-read-cache.patch](scripts/native-sqlite-read-cache.patch). The 0.0.7 build is stock apart from the build fixes above; its JSON read paths still prepare each statement per call.
 
 ## Workload
 
 Each run creates a fresh 2,000-row deterministic `items` fixture and matching `events` rows. Fixture setup and post-case validation are outside timed intervals; query cases also check returned values during each timed operation. Every case has one untimed warmup and five timed samples; the report contains all samples, median, p95, and throughput. Operations are sequential on one connection or transaction. Each app requests WAL journal mode, `synchronous=FULL`, and foreign keys. The report records the values read back from its SQLite connection and runs `PRAGMA integrity_check` at the end.
+
+The `json_extract` case deliberately has no expression index: each of its 100 queries evaluates JSON across the 2,000 fixture rows. Adding an index would measure indexed lookups instead.
 
 | Case | Timed work |
 | --- | --- |
@@ -45,7 +49,6 @@ Prerequisites: Node 24, Java 21, Android SDK with API 35 build tools, Android ND
 cd react-native
 npm install
 cd ..
-node scripts/build-native-fork.js
 .\scripts\sync-runner.ps1
 node scripts/smoke-runner.mjs
 
@@ -89,4 +92,4 @@ The benchmark resets only its own `items`, `events`, `writes`, and `blobs` table
 - React Native TypeScript checking: `cd react-native; npx tsc --noEmit`.
 - Android functional verification uses the `Medium_Phone_API_36.1` emulator and checks the result list plus `integrity_check`.
 
-The measured emulator comparison is in [RESULTS.md](RESULTS.md). The connected Pixel 7 release comparison, signed APKs, and raw reports are in [RESULTS-PIXEL7.md](RESULTS-PIXEL7.md).
+The measured emulator comparison is in [RESULTS.md](RESULTS.md). The connected Pixel 7 release comparison, signed APKs, and raw reports are in [RESULTS-PIXEL7.md](RESULTS-PIXEL7.md). The before-and-after comparison for the NativeScript 9.1 / sqlite 0.0.7 and nitro-sqlite 10.0.0 upgrade is in [RESULTS-PIXEL7-UPGRADE.md](RESULTS-PIXEL7-UPGRADE.md), and the head-to-head NativeScript vs React Native comparison is in [RESULTS-PIXEL7-NS-VS-RN.md](RESULTS-PIXEL7-NS-VS-RN.md).
