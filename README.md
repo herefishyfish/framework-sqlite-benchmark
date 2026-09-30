@@ -10,7 +10,7 @@ Three CLI-created apps run the same 17 SQLite cases on Android:
 
 The NativeScript plugin is installed from npm and patched on `npm install` by `patch-package` ([nativescript/patches/](nativescript/patches/)) with two Android build fixes: CMake path arguments use forward slashes, so Windows paths such as `C:\Users` are not read as escape sequences; and the link-time `libNativeScript.so` stub is linked by name instead of as an `IMPORTED` target, so the Android Gradle plugin does not package it over the runtime's own library (that replaced the debug runtime and crashed on startup). The published Solid template requires `--legacy-peer-deps` for npm installation.
 
-The earlier PR 7 fork measurements used a local Android read statement cache change, recorded in [scripts/native-sqlite-read-cache.patch](scripts/native-sqlite-read-cache.patch). The 0.0.7 build is stock apart from the build fixes above; its JSON read paths still prepare each statement per call.
+The earlier PR 7 fork measurements used a local Android read statement cache change, which is not needed for 0.0.7 and has been removed. The 0.0.7 build is stock apart from the build fixes above; its JSON read paths still prepare each statement per call.
 
 ## Workload
 

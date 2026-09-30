@@ -12,7 +12,7 @@ This page compares the NativeScript and React Native builds before and after the
 | NativeScript | `@nativescript/webpack`           | 5.0.x                                                                | 5.0.38                                                                 |
 | NativeScript | SQLite plugin                     | `@edusperoni/nativescript-sqlite` 0.0.3 from the [PR 7 fork](https://github.com/edusperoni/nativescript-plugins/pull/7) at `4c2e152` | `@edusperoni/nativescript-sqlite` 0.0.7 from npm                       |
 | NativeScript | Plugin JS binding                 | Raw V8 API                                                           | Node-API (0.0.7 default; needs `@nativescript/android` 9.1)            |
-| NativeScript | Local plugin changes              | [Android read cache patch](scripts/native-sqlite-read-cache.patch)   | Two Android build fixes in `nativescript/patches/`; no read cache      |
+| NativeScript | Local plugin changes              | Local Android read statement cache change (removed; not needed for 0.0.7) | Two Android build fixes in `nativescript/patches/`; no read cache      |
 | NativeScript | Bundled SQLite                    | 3.53.1                                                               | 3.53.1                                                                 |
 | React Native | `react-native-nitro-sqlite`       | 9.7.0                                                                | 10.0.0                                                                 |
 | React Native | `react-native-nitro-modules`      | 0.37.1                                                               | 0.37.1                                                                 |
